@@ -151,10 +151,18 @@ class DUDnCNN(NNRegressor):
         for i in range(D//2 + 1, D):
             j = i - (D//2 + 1) + 1
             torch.backends.cudnn.benchmark = True
-            h = self.conv[i+1]((h + h_buff[-j]) / np.sqrt(2))
+            h = self.dequant(h)
+            h_buff_j = self.dequant(h_buff[-j])
+            h_sum = (h + h_buff_j) / np.sqrt(2)
+            h_sum = self.quant(h_sum)
+
+            h = self.conv[i+1](h_sum)
+
             torch.backends.cudnn.benchmark = False
             h = F.relu(self.bn[i](h))
 
-        y = self.conv[D+1](h) + x
-        y = self.dequant(y)
+        y_pre = self.conv[D+1](h)
+        y_pre, x = self.dequant(y_pre), self.dequant(x)
+        y = y_pre + x
+        # y = self.dequant(y)
         return y

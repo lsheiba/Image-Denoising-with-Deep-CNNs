@@ -5,6 +5,7 @@ import cv2
 import numpy as np
 import torch
 import torch.quantization.quantize_fx as quantize_fx
+from torch.quantization.fuse_modules import fuse_known_modules
 
 import model
 
@@ -59,7 +60,12 @@ def quantize_model(quantize_type, model, input_example=None):
         )
     elif quantize_type == 'static':
         model.qconfig = torch.quantization.get_default_qconfig('fbgemm')
-        model_fp32_fused = torch.quantization.fuse_modules(model, [['conv']])
+        for i in range(len(model.bn)):
+            conv, bn = model.conv[i+1], model.bn[i]
+            conv_new, bn_new = fuse_known_modules([conv, bn])
+            setattr(model.conv, str(i+1), conv_new)
+            setattr(model.bn, str(i), bn_new)
+        model_fp32_fused = model
         model_fp32_prepared = torch.quantization.prepare(model_fp32_fused)
         if input_example is not None:
             model_fp32_prepared(input_example)
