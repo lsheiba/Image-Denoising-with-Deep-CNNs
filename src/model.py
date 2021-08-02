@@ -94,6 +94,9 @@ class DUDnCNN(NNRegressor):
         super(DUDnCNN, self).__init__()
         self.D = D
 
+        self.quant = torch.quantization.QuantStub()
+        self.dequant = torch.quantization.DeQuantStub()
+
         # compute k(max_pool) and l(max_unpool)
         k = [0]
         k.extend([i for i in range(D//2)])
@@ -127,6 +130,7 @@ class DUDnCNN(NNRegressor):
             nn.init.constant_(self.bn[i].weight.data, 1.25 * np.sqrt(C))
 
     def forward(self, x):
+        x = self.quant(x)
         D = self.D
         h = F.relu(self.conv[0](x))
         h_buff = []
@@ -147,9 +151,18 @@ class DUDnCNN(NNRegressor):
         for i in range(D//2 + 1, D):
             j = i - (D//2 + 1) + 1
             torch.backends.cudnn.benchmark = True
-            h = self.conv[i+1]((h + h_buff[-j]) / np.sqrt(2))
+            h = self.dequant(h)
+            h_buff_j = self.dequant(h_buff[-j])
+            h_sum = (h + h_buff_j) / np.sqrt(2)
+            h_sum = self.quant(h_sum)
+
+            h = self.conv[i+1](h_sum)
+
             torch.backends.cudnn.benchmark = False
             h = F.relu(self.bn[i](h))
 
-        y = self.conv[D+1](h) + x
+        y_pre = self.conv[D+1](h)
+        y_pre, x = self.dequant(y_pre), self.dequant(x)
+        y = y_pre + x
+        # y = self.dequant(y)
         return y

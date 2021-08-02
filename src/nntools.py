@@ -9,6 +9,7 @@ import time
 import torch
 from torch import nn
 import torch.utils.data as td
+import torch.quantization.quantize_fx as quantize_fx
 from abc import ABC, abstractmethod
 
 
@@ -140,9 +141,13 @@ class Experiment(object):
     """
 
     def __init__(self, net, train_set, val_set, optimizer, stats_manager,
-                 output_dir=None, batch_size=16, perform_validation_during_training=False):
+                 output_dir=None, batch_size=16, perform_validation_during_training=False,
+                 quantize=None, device=torch.device('cpu')):
 
         # Define data loaders
+        self.quantize = quantize
+        self.device = device
+        self.criterion = nn.MSELoss()
         train_loader = td.DataLoader(train_set, batch_size=batch_size, shuffle=True,
                                      drop_last=True, pin_memory=True)
         val_loader = td.DataLoader(val_set, batch_size=batch_size, shuffle=False,
@@ -155,7 +160,7 @@ class Experiment(object):
         if output_dir is None:
             output_dir = 'experiment_{}'.format(time.time())
         os.makedirs(output_dir, exist_ok=True)
-        checkpoint_path = os.path.join(output_dir, "checkpoint.pth.tar")
+        checkpoint_path = os.path.join(output_dir, "checkpoint.pth")
         config_path = os.path.join(output_dir, "config.txt")
 
         # Transfer all local arguments/variables into attributes
@@ -216,18 +221,30 @@ class Experiment(object):
         for state in self.optimizer.state.values():
             for k, v in state.items():
                 if isinstance(v, torch.Tensor):
-                    state[k] = v.to(self.net.device)
+                    state[k] = v.to(self.device)
 
     def save(self):
         """Saves the experiment on disk, i.e, create/update the last checkpoint."""
-        torch.save(self.state_dict(), self.checkpoint_path)
+        torch.save(self.net, self.checkpoint_path)
         with open(self.config_path, 'w') as f:
             print(self, file=f)
 
+        if not self.quantize:
+            return
+
+        if self.quantize == 'fx_static':
+            net_quantized = quantize_fx.convert_fx(self.net)
+            net_fused = quantize_fx.fuse_fx(net_quantized)
+
+            torch.save(net_quantized, self.checkpoint_path + '.int8.pth')
+            __import__('ipdb').set_trace()
+
     def load(self):
         """Loads the experiment from the last checkpoint saved on disk."""
-        checkpoint = torch.load(self.checkpoint_path,
-                                map_location=self.net.device)
+        checkpoint = torch.load(
+            self.checkpoint_path,
+            map_location=self.device
+        )
         self.load_state_dict(checkpoint)
         del checkpoint
 
@@ -257,15 +274,21 @@ class Experiment(object):
         for epoch in range(start_epoch, num_epochs):
             s = time.time()
             self.stats_manager.init()
-            for x, d in self.train_loader:
-                x, d = x.to(self.net.device), d.to(self.net.device)
+            for i, (x, d) in enumerate(self.train_loader):
+                x, d = x.to(self.device), d.to(self.device)
                 self.optimizer.zero_grad()
                 y = self.net.forward(x)
-                loss = self.net.criterion(y, d)
+                loss = self.criterion(y, d)
                 loss.backward()
                 self.optimizer.step()
                 with torch.no_grad():
                     self.stats_manager.accumulate(loss.item(), x, y, d)
+
+                if i % 10 == 0:
+                    print("Epoch {} | Time: {:.2f}s | Training Loss: {:.6f}".format(
+                        self.epoch, time.time() - s, loss)
+                    )
+
             if not self.perform_validation_during_training:
                 self.history.append(self.stats_manager.summarize())
                 print("Epoch {} | Time: {:.2f}s | Training Loss: {:.6f}".format(
@@ -290,9 +313,9 @@ class Experiment(object):
         self.net.eval()
         with torch.no_grad():
             for x, d in self.val_loader:
-                x, d = x.to(self.net.device), d.to(self.net.device)
+                x, d = x.to(self.device), d.to(self.device)
                 y = self.net.forward(x)
-                loss = self.net.criterion(y, d)
+                loss = self.criterion(y, d)
                 self.stats_manager.accumulate(loss.item(), x, y, d)
         self.net.train()
         return self.stats_manager.summarize()
