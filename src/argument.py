@@ -1,4 +1,5 @@
 import argparse
+import os
 
 
 def parse():
@@ -9,9 +10,9 @@ def parse():
         description='Bird-Species-Classification-Using-Transfer-Learning')
 
     parser.add_argument('--root_dir', type=str,
-                        default='../dataset/BSDS300/images', help='root directory of dataset')
+                        default=os.environ.get('DATA_DIR')+'/images', help='root directory of dataset')
     parser.add_argument('--output_dir', type=str,
-                        default='../checkpoints/', help='directory of saved checkpoints')
+                        default=os.environ.get('TRAINING_DIR')+'/checkpoints/', help='directory of saved checkpoints')
     parser.add_argument('--num_epochs', type=int,
                         default=200, help='number of epochs')
     parser.add_argument('--D', type=int,
@@ -43,8 +44,8 @@ class Args():
     '''
 
     def __init__(self):
-        self.root_dir = '../dataset/BSDS300/images'
-        self.output_dir = '../checkpoints/'
+        self.root_dir = os.environ.get('DATA_DIR')+'/images'
+        self.output_dir = os.environ.get('TRAINING_DIR')+'/checkpoints/'
         self.num_epochs = 200
         self.D = 6
         self.C = 64
