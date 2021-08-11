@@ -4,6 +4,7 @@ Neural Network tools developed for UCSD ECE285 MLIP.
 Copyright 2019. Charles Deledalle, Sneha Gupta, Anurag Paul, Inderjot Saggu.
 """
 
+import copy
 import os
 import time
 import torch
@@ -144,7 +145,6 @@ class Experiment(object):
                  output_dir=None, batch_size=16, perform_validation_during_training=False,
                  quantize=None, device=torch.device('cpu')):
 
-        print('Experiment._init__')
         # Define data loaders
         self.quantize = quantize
         self.device = device
@@ -206,9 +206,16 @@ class Experiment(object):
 
     def state_dict(self):
         """Returns the current state of the experiment."""
-        return {'Net': self.net.state_dict(),
-                'Optimizer': self.optimizer.state_dict(),
-                'History': self.history}
+
+        state = {
+            'Net': self.net.state_dict(),
+            'Optimizer': self.optimizer.state_dict(),
+            'History': self.history,
+        }
+        if self.quantize == 'fx_static':
+            self.net_quantized = quantize_fx.convert_fx(copy.deepcopy(self.net))
+            state['QAT'] = self.net_quantized.state_dict()
+        return state
 
     def load_state_dict(self, checkpoint):
         """Loads the experiment from the input checkpoint."""
@@ -226,19 +233,18 @@ class Experiment(object):
 
     def save(self):
         """Saves the experiment on disk, i.e, create/update the last checkpoint."""
-        torch.save(self.net, self.checkpoint_path)
+        torch.save(self.state_dict(), self.checkpoint_path)
         with open(self.config_path, 'w') as f:
             print(self, file=f)
 
         if not self.quantize:
             return
 
-        if self.quantize == 'fx_static':
-            net_quantized = quantize_fx.convert_fx(self.net)
-            net_fused = quantize_fx.fuse_fx(net_quantized)
-
-            torch.save(net_quantized, self.checkpoint_path + '.int8.pth')
-            __import__('ipdb').set_trace()
+        # if self.quantize == 'fx_static':
+        #     net_quantized = quantize_fx.convert_fx(self.net)
+        #     net_fused = quantize_fx.fuse_fx(net_quantized)
+        #
+        #     torch.save(net_quantized, self.checkpoint_path + '.int8.pth')
 
     def load(self):
         """Loads the experiment from the last checkpoint saved on disk."""
@@ -286,8 +292,8 @@ class Experiment(object):
                     self.stats_manager.accumulate(loss.item(), x, y, d)
 
                 if i % 10 == 0:
-                    print("Epoch {} | Time: {:.2f}s | Training Loss: {:.6f}".format(
-                        self.epoch, time.time() - s, loss)
+                    print("Epoch {} | Step {}/{} | Time: {:.2f}s | Training Loss: {:.6f}".format(
+                        self.epoch, i, len(self.train_loader), time.time() - s, loss)
                     )
 
             if not self.perform_validation_during_training:
