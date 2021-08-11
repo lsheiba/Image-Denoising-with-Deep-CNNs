@@ -60,6 +60,7 @@ def run(args):
 
 
 if __name__ == '__main__':
+    print("MAIN")
     args = parse()
     print(args)
     run(args)
