@@ -144,6 +144,7 @@ class Experiment(object):
                  output_dir=None, batch_size=16, perform_validation_during_training=False,
                  quantize=None, device=torch.device('cpu')):
 
+        print('Experiment._init__')
         # Define data loaders
         self.quantize = quantize
         self.device = device
