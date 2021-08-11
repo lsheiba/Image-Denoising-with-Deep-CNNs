@@ -12,7 +12,7 @@ def parse():
     parser.add_argument('--root_dir', type=str,
                         default=os.environ.get('DATA_DIR')+'/images', help='root directory of dataset')
     parser.add_argument('--output_dir', type=str,
-                        default=os.environ.get('TRAINING_DIR')+'/checkpoints/', help='directory of saved checkpoints')
+                        default=os.environ.get('TRAINING_DIR')+'/checkpoint/', help='directory of saved checkpoints')
     parser.add_argument('--num_epochs', type=int,
                         default=200, help='number of epochs')
     parser.add_argument('--D', type=int,
@@ -45,7 +45,7 @@ class Args():
 
     def __init__(self):
         self.root_dir = os.environ.get('DATA_DIR')+'/images'
-        self.output_dir = os.environ.get('TRAINING_DIR')+'/checkpoints/'
+        self.output_dir = os.environ.get('TRAINING_DIR')+'/checkpoint/'
         self.num_epochs = 200
         self.D = 6
         self.C = 64

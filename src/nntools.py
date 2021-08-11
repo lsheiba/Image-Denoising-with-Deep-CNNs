@@ -142,17 +142,18 @@ class Experiment(object):
     """
 
     def __init__(self, net, train_set, val_set, optimizer, stats_manager,
-                 output_dir=None, batch_size=16, perform_validation_during_training=False,
-                 quantize=None, device=torch.device('cpu')):
+        output_dir=None, batch_size=16, perform_validation_during_training=False,
+        quantize=None, device=torch.device('cpu')):
+
 
         # Define data loaders
         self.quantize = quantize
         self.device = device
         self.criterion = nn.MSELoss()
         train_loader = td.DataLoader(train_set, batch_size=batch_size, shuffle=True,
-                                     drop_last=True, pin_memory=True)
+            drop_last=True, pin_memory=True)
         val_loader = td.DataLoader(val_set, batch_size=batch_size, shuffle=False,
-                                   drop_last=True, pin_memory=True)
+            drop_last=True, pin_memory=True)
 
         # Initialize history
         history = []
