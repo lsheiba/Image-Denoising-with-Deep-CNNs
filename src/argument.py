@@ -57,26 +57,3 @@ class Args():
         self.batch_size = 4
         self.sigma = 30
 
-class ArgsQ():
-    '''
-    For qtest jupyter notebook
-    '''
-
-    def __init__(self):
-        self.root_dir = os.environ.get('DATA_DIR')+'/images'
-        self.output_dir = os.environ.get('TRAINING_DIR')+'/checkpoint/'
-        self.num_epochs = 200
-        self.D = 6
-        self.C = 64
-        self.plot = False
-        self.model = 'dudncnn'
-        self.lr = 1e-3
-        self.image_size = (180, 180)
-        self.test_image_size = (320, 320)
-        self.batch_size = 4
-        self.sigma = 30
-        self.image = '../test.jpg'
-        self.output = None
-        self.quantize = None
-        self.show=False
-
