@@ -75,7 +75,7 @@ class ArgsQ():
         self.test_image_size = (320, 320)
         self.batch_size = 4
         self.sigma = 30
-        self.image = None
+        self.image = '../test.jpg'
         self.output = None
         self.quantize = None
         self.show=False
