@@ -91,7 +91,7 @@ class UDnCNN(NNRegressor):
 class QDUDnCNN(NNRegressor):
 
     def __init__(self, D, C=64):
-        super(DUDnCNN, self).__init__()
+        super(QDUDnCNN, self).__init__()
         self.D = D
 
         self.quant = torch.quantization.QuantStub()
