@@ -21,8 +21,8 @@ def parse():
                         default=64, help='kernel size of convolutional layer')
     parser.add_argument('--plot', type=bool, default=False,
                         help='plot loss during training or not')
-    parser.add_argument('--model', type=str, default='dudncnn',
-                        help='dncnn, udncnn, or dudncnn')
+    parser.add_argument('--model', type=str, default='quantize',
+                        help='dncnn, udncnn, dudncnn, or quantize')
     parser.add_argument('--lr', type=float, default=1e-3,
                         help='learning rate for training')
     parser.add_argument('--image_size', type=tuple, default=(180, 180))
@@ -50,7 +50,7 @@ class Args():
         self.D = 6
         self.C = 64
         self.plot = False
-        self.model = 'dudncnn'
+        self.model = 'quantize'
         self.lr = 1e-3
         self.image_size = (180, 180)
         self.test_image_size = (320, 320)

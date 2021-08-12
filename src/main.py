@@ -4,7 +4,7 @@ import torch.quantization.quantize_fx as quantize_fx
 import matplotlib.pyplot as plt
 from data import NoisyBSDSDataset
 from argument import parse
-from model import DnCNN, UDnCNN, DUDnCNN
+from model import DnCNN, UDnCNN, DUDnCNN, QDUDnCNN
 import nntools as nt
 from utils import DenoisingStatsManager, plot
 
@@ -25,8 +25,10 @@ def run(args):
         net = UDnCNN(args.D, C=args.C).to(device)
     elif args.model == 'dudncnn':
         net = DUDnCNN(args.D, C=args.C).to(device)
+    elif args.model == 'quantize':
+        net = QDUDnCNN(args.D, C=args.C).to(device)
     else:
-        raise NameError('Please enter: dncnn, udncnn, or dudncnn')
+        raise NameError('Please enter: dncnn, udncnn, dudncnn, or quantize')
 
     # optimizer
     quantize = args.quantize
