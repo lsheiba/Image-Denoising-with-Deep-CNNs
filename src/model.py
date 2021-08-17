@@ -75,7 +75,7 @@ class UDnCNN(NNRegressor):
         for i in range(D//2-1):
             shape_buff.append(h.shape)
             h, idx = F.max_pool2d(F.relu(self.bn[i](self.conv[i+1](h))),
-                                  kernel_size=(2, 2), return_indices=True)
+                kernel_size=(2, 2), return_indices=True)
             h_buff.append(h)
             idx_buff.append(idx)
         for i in range(D//2-1, D//2+1):
@@ -83,7 +83,7 @@ class UDnCNN(NNRegressor):
         for i in range(D//2+1, D):
             j = i - (D // 2 + 1) + 1
             h = F.max_unpool2d(F.relu(self.bn[i](self.conv[i+1]((h+h_buff[-j])/np.sqrt(2)))),
-                               idx_buff[-j], kernel_size=(2, 2), output_size=shape_buff[-j])
+                idx_buff[-j], kernel_size=(2, 2), output_size=shape_buff[-j])
         y = self.conv[D+1](h) + x
         return y
 
