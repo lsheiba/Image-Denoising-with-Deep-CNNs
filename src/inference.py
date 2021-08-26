@@ -27,13 +27,15 @@ def parse_args():
     return parser.parse_args()
 
 
-def load_model(path, D=6, C=64, device=torch.device('cpu')):
-    net = model.DUDnCNN(D, C)
+#added variable model loading for QAT
+def load_model(path, model_class=model.DUDnCNN, D=6, C=64, device=torch.device('cpu')):
+    net = model_class(D, C)
     checkpoint = torch.load(path, map_location=torch.device('cpu'))
-    net.load_state_dict(checkpoint['Net'])
+    if 'QAT' not in checkpoint:
+        net.load_state_dict(checkpoint['Net'])
     net.eval()
 
-    return net.to(device)
+    return net.to(device), checkpoint.get('QAT')
 
 
 def img_to_tensor(img, device):
