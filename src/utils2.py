@@ -110,7 +110,7 @@ def quantize_model(quantize_type, model, input_example=None, qat_state=None):
 
     return model
 
-
+"""
 class NoisyBSDSDataset(td.Dataset):
     def __init__(self, root_dir, mode='train', image_size=(180, 180), sigma=30):
         super(NoisyBSDSDataset, self).__init__()
@@ -146,4 +146,4 @@ class NoisyBSDSDataset(td.Dataset):
         noisy = clean + 2 / 255 * self.sigma * torch.randn(clean.shape)
         return noisy, clean
     
- 
+""" 
