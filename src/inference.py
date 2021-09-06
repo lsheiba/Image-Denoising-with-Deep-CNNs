@@ -53,7 +53,7 @@ def tensor_to_img(tensor):
     return tensor.cpu().numpy().astype(np.uint8)
 
 
-def quantize_model(quantize_type, model, input_example=None):
+def quantize_model(quantize_type, model, input_example=None, qat_state=None):
     if quantize_type == 'dynamic':
         model = torch.quantization.quantize_dynamic(
             model,
@@ -89,6 +89,8 @@ def quantize_model(quantize_type, model, input_example=None):
             model_prepared(input_example)
         # quantize
         model = quantize_fx.convert_fx(model_prepared)
+        if qat_state is not None:
+            model.load_state_dict(qat_state)
 
     return model
 
