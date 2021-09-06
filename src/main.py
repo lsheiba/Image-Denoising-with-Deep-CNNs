@@ -35,7 +35,7 @@ def run(args):
 
     if quantize == 'fx_static':
         net.train()
-        qconfig_dict = {"": torch.quantization.get_default_qat_qconfig('qnnpack')}
+        qconfig_dict = {"": torch.quantization.get_default_qat_qconfig('fbgemm')}
         net = quantize_fx.prepare_qat_fx(net, qconfig_dict)
 
     adam = torch.optim.Adam(net.parameters(), lr=args.lr)
