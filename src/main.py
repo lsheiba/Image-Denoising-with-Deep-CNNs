@@ -4,7 +4,7 @@ import torch.quantization.quantize_fx as quantize_fx
 import matplotlib.pyplot as plt
 from data import NoisyBSDSDataset
 from argument import parse
-from model import DnCNN, UDnCNN, DUDnCNN, QDUDnCNN
+from model import DnCNN, QAT_DnCNN, UDnCNN, DUDnCNN, QDUDnCNN
 import nntools as nt
 from utils import DenoisingStatsManager, plot
 
