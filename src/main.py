@@ -4,7 +4,7 @@ import torch.quantization.quantize_fx as quantize_fx
 import matplotlib.pyplot as plt
 from data import NoisyBSDSDataset
 from argument import parse
-from model import DnCNN, QAT_DnCNN, UDnCNN, DUDnCNN, QDUDnCNN
+from model import DnCNN, QDnCNN, UDnCNN, QUDnCNN, DUDnCNN, QDUDnCNN
 import nntools as nt
 from utils import DenoisingStatsManager, plot
 
@@ -21,16 +21,18 @@ def run(args):
     # model
     if args.model == 'dncnn':
         net = DnCNN(args.D, C=args.C).to(device)
-    elif args.model == 'qat_dncnn':
-        net = QAT_DnCNN(args.D, C=args.C).to(device)
+    elif args.model == 'qdncnn':
+        net = QDnCNN(args.D, C=args.C).to(device)
     elif args.model == 'udncnn':
         net = UDnCNN(args.D, C=args.C).to(device)
+    elif args.model == 'qudncnn':
+        net = QUDnCNN(args.D, C=args.C).to(device)
     elif args.model == 'dudncnn':
         net = DUDnCNN(args.D, C=args.C).to(device)
-    elif args.model == 'quantize':
+    elif args.model == 'qdudncnn':
         net = QDUDnCNN(args.D, C=args.C).to(device)
     else:
-        raise NameError('Please enter: dncnn, qat_dncnn, udncnn, dudncnn, or quantize')
+        raise NameError('Please enter: dncnn, qdncnn, udncnn, qudncnn, dudncnn, or qdudncnn')
 
     # optimizer
     quantize = args.quantize
