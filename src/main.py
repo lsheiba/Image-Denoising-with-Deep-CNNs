@@ -21,6 +21,8 @@ def run(args):
     # model
     if args.model == 'dncnn':
         net = DnCNN(args.D, C=args.C).to(device)
+    elif args.model == 'qat_dncnn':
+        net = QAT_DnCNN(args.D, C=args.C).to(device)
     elif args.model == 'udncnn':
         net = UDnCNN(args.D, C=args.C).to(device)
     elif args.model == 'dudncnn':
@@ -28,7 +30,7 @@ def run(args):
     elif args.model == 'quantize':
         net = QDUDnCNN(args.D, C=args.C).to(device)
     else:
-        raise NameError('Please enter: dncnn, udncnn, dudncnn, or quantize')
+        raise NameError('Please enter: dncnn, qat_dncnn, udncnn, dudncnn, or quantize')
 
     # optimizer
     quantize = args.quantize
